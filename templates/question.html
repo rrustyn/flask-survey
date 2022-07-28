@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
-{% block content %}
 
-  <h1>{{ question.question }}</h1>
+{% block title %}
+  {{ question.question }}
+{% endblock %}
+
+{% block content %}
 
   <form action="/answer" method="POST">
 

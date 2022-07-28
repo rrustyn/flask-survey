@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-from surveys import satisfaction_survey as survey
+from surveys import surveys as surveys
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "never-tell!"
@@ -10,12 +10,25 @@ debug = DebugToolbarExtension(app)
 
 # responses = []  # list for user responses
 
+response_key = "responses"
+
+# surveys = {
+#     "satisfaction": satisfaction_survey,
+#     "personality": personality_quiz,
+# }
 
 @app.get('/')
-def show_home():
+def show_surveys():
+    """ Give multiple survey options and let user choose which survey to take """
+
+    return render_template("surveys.html", surveys = surveys)
+
+
+@app.get('/start')
+def show_start():
     """show home page to begin a survey"""
 
-    session["responses"] = []
+    session[response_key] = []
 
     return render_template("survey_start.html", survey=survey)
 
@@ -27,18 +40,18 @@ def start_survey():
     return redirect('/questions/0')
 
 
-@app.get('/questions/<number>')  # if invalid number, redirect
+@app.get('/questions/<int:number>')  # if invalid number, redirect #call question id
 def show_question(number):
     """shows a question from survey question list"""
 
-    if int(number) != len(session["responses"]):
-        number = len(session["responses"])
+    if (number) != len(session[response_key]):
+        number = len(session[response_key])
         flash("Stop trying to mess with the question order!")
         return redirect(f"/questions/{number}")
 
 
     return render_template("question.html",
-                    question=survey.questions[int(number)])
+                    question=survey.questions[(number)])
 
 
 @app.post("/answer")  # take answer for q1 and redirect to a get for q2
@@ -47,11 +60,12 @@ def log_response_and_redirect():
         or completion page if complete
     """
 
-    responses = session["responses"]  # have to do this for sessions when appending
+    responses = session[response_key]  # have to do this for sessions when appending
+    # do this because you have to send a new cookie (rebinding on line 54)
     responses.append(request.form["answer"])
-    session["responses"] = responses
+    session[response_key] = responses
 
-    next_question_index = len(session["responses"])
+    next_question_index = len(session[response_key])
 
     if next_question_index < len(survey.questions):
         return redirect(f"/questions/{next_question_index}")
@@ -64,3 +78,4 @@ def show_completion():
     """show a completion page"""
     return render_template("completion.html")
 
+# if you flash before render_template, it will flash multiple times

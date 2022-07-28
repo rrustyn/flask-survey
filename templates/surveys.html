@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Pick Your Survey
+{% endblock %}
+
+{% block content %}
+
+  <form action="/answer" method="POST">
+
+      <!-- you should have one item like this for every choice -->
+      {% for value in surveys.values() %}
+      <p>
+        <input
+            type="radio"
+            name="answer"
+            value="{{ value }}">
+        {{ value.title }}
+      </p>
+      {% endfor %}
+    <button>Continue</button>
+  </form>
+
+{% endblock %}
